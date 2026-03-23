@@ -13,10 +13,10 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useRoute, useRouter } from "vue-router";
 import { Textarea } from "~~/app/components/ui/textarea";
+import { Download, FileDown } from "lucide-vue-next";
 
 const router = useRouter();
 const route = useRoute();
-const id = route.params.id;
 
 const activeResume = ref<any | null>(null);
 
@@ -27,7 +27,7 @@ const isSaving = ref(false);
 const isDeleting = ref(false);
 
 async function fetchResume() {
-    const res = await fetch(`/api/base_resumes/${id}`);
+    const res = await fetch(`/api/base_resumes/${route.params.id}`);
     const data = await res.json();
     activeResume.value = data.resume;
     editForm.value.resume_text = data.resume.resume_text;
@@ -74,6 +74,46 @@ async function deleteResume() {
     }
 }
 
+async function downloadMarkdown() {
+    if (!activeResume.value) return;
+
+    const blob = new Blob([editForm.value.resume_text], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${activeResume.value.resume_name}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+const isExportingPdf = ref(false);
+
+async function exportPdf() {
+    if (!activeResume.value) return;
+
+    isExportingPdf.value = true;
+    try {
+        const res = await fetch(`/api/base_resumes/${activeResume.value.id}/pdf`);
+
+        if (!res.ok) {
+            throw new Error('Failed to generate PDF');
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${activeResume.value.resume_name}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error("Failed to export PDF", error);
+        alert("Erro ao exportar PDF. Tente novamente.");
+    } finally {
+        isExportingPdf.value = false;
+    }
+}
+
 onMounted(async () => {
     await fetchResume();
 });
@@ -93,7 +133,7 @@ onMounted(async () => {
                     <BreadcrumbItem>
                         <BreadcrumbPage>{{
                             activeResume ? activeResume.resume_name : "Início"
-                        }}</BreadcrumbPage>
+                            }}</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
@@ -107,10 +147,22 @@ onMounted(async () => {
                         {{ activeResume.resume_name }}
                     </h2>
                     <div class="flex gap-2 shrink-0">
-                        <Button variant="outline" @click="saveResume" :disabled="isSaving">
+                        <Button variant="outline" @click="downloadMarkdown"
+                            :disabled="isSaving || isDeleting || isExportingPdf">
+                            <FileDown class="w-4 h-4 mr-2" />
+                            Markdown
+                        </Button>
+                        <Button variant="outline" @click="exportPdf"
+                            :disabled="isSaving || isDeleting || isExportingPdf">
+                            <Download class="w-4 h-4 mr-2" />
+                            {{ isExportingPdf ? "Gerando..." : "PDF" }}
+                        </Button>
+                        <Button variant="outline" @click="saveResume"
+                            :disabled="isSaving || isDeleting || isExportingPdf">
                             {{ isSaving ? "Salvando..." : "Salvar Alterações" }}
                         </Button>
-                        <Button variant="destructive" @click="deleteResume" :disabled="isDeleting">
+                        <Button variant="destructive" @click="deleteResume"
+                            :disabled="isSaving || isDeleting || isExportingPdf">
                             Deletar
                         </Button>
                     </div>

@@ -19,6 +19,7 @@
     "clsx": "^2.1.1",
     "langchain": "^1.2.36",
     "lucide-vue-next": "^0.577.0",
+    "md-to-pdf": "^5.2.5",
     "reka-ui": "^2.9.2",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.2",

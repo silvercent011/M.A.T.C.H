@@ -121,7 +121,7 @@ async function createResume() {
 </script>
 
 <template>
-    <Sidebar collapsible="none" class="hidden flex-1 md:flex md:flex-col">
+    <Sidebar collapsible="none" class="hidden flex-1 md:flex md:flex-col w-full">
         <SidebarHeader class="gap-3.5 border-b p-4">
             <div class="flex w-full items-center justify-between">
                 <div class="text-base font-medium text-foreground">
@@ -152,7 +152,7 @@ async function createResume() {
                             <span class="font-medium truncate">{{ resume.resume_name }}</span>
                             <span class="ml-auto text-xs text-muted-foreground whitespace-nowrap">{{
                                 formatDate(resume.updated_at)
-                            }}</span>
+                                }}</span>
                         </div>
                         <span class="line-clamp-2 w-[260px] whitespace-break-spaces text-xs text-muted-foreground">
                             {{ resume.resume_text }}
@@ -164,7 +164,7 @@ async function createResume() {
     </Sidebar>
 
     <Dialog v-model:open="openCreateDialog">
-        <DialogContent class="sm:max-w-[600px]">
+        <DialogContent class="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
                 <DialogTitle>Novo Currículo Base</DialogTitle>
                 <DialogDescription>
