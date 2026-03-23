@@ -3,6 +3,7 @@
     "nitro/tsconfig"
   ],
   "compilerOptions": {
+    "moduleResolution": "Bundler",
     "baseUrl": ".",
     "paths": {
       "~~/*": [
@@ -16,4 +17,13 @@
       ]
     }
   },
+  "vueCompilerOptions": {
+    "plugins": [
+      "vue-router/volar/sfc-route-blocks",
+      "vue-router/volar/sfc-typed-router"
+    ]
+  },
+  "include": [
+    "./typed-router.d.ts"
+  ]
 }

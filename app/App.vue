@@ -1,3 +1,3 @@
 <template>
-<h1>Hello World 123</h1>
+  <RouterView />
 </template>
