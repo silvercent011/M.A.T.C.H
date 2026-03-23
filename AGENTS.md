@@ -4,7 +4,7 @@ This project is based on [Nitro](https://nitro.build) v3, [h3](https://h3.dev/),
 
 ## Project Structure
 
-`app/` is the frontend with `main.ts` as entry and file-based pages under `app/pages/`. Key frontend subdirs currently in use are `components/`, `assets/`, and `lib/`. `server/` currently contains `api/` (/api prefixed handlers), `plugins/`, `services/`, and `utils/`. `public/` holds static assets (copied, not bundled). Config files: `vite.config.ts` (loads `nitro/vite`, Vue, Tailwind and file-based router plugins), `nitro.config.ts` (serverDir and database config), `tsconfig.json` (extends `nitro/tsconfig`, `~/*`, `@/*`, and `~~/*` path aliases).
+`app/` is the frontend with `main.ts` as entry and file-based pages under `app/pages/`. `app/pages/index.vue` is the dashboard-style home page and should remain the primary overview entry. Key frontend subdirs currently in use are `components/`, `assets/`, and `lib/`. `server/` currently contains `api/` (/api prefixed handlers), `plugins/`, `services/`, and `utils/`. `public/` holds static assets (copied, not bundled). Config files: `vite.config.ts` (loads `nitro/vite`, Vue, Tailwind and file-based router plugins), `nitro.config.ts` (serverDir and database config), `tsconfig.json` (extends `nitro/tsconfig`, `~/*`, `@/*`, and `~~/*` path aliases).
 
 ## Conventions
 

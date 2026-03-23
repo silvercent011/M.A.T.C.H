@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
-import { useSidebar } from "./ui/sidebar";
-import { useRoute, useRouter } from "vue-router";
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import {
   Sidebar,
   SidebarContent,
@@ -33,7 +32,6 @@ const filteredJobs = computed(() => {
   );
 });
 
-const { setOpen } = useSidebar();
 const router = useRouter();
 
 async function fetchJobs() {

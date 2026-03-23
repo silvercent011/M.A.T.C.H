@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import type { HTMLAttributes, Ref } from "vue";
-import { defaultDocument, useEventListener, useMediaQuery, useVModel } from "@vueuse/core";
+import {
+  defaultDocument,
+  useEventListener,
+  useMediaQuery,
+  useVModel,
+} from "@vueuse/core";
 import { TooltipProvider } from "reka-ui";
-import { computed, ref } from "vue";
+import type { HTMLAttributes, Ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { cn } from "~/lib/utils";
 import {
   provideSidebarContext,
@@ -17,11 +22,15 @@ const props = withDefaults(
   defineProps<{
     defaultOpen?: boolean;
     open?: boolean;
+    disabled?: boolean;
     class?: HTMLAttributes["class"];
   }>(),
   {
-    defaultOpen: !defaultDocument?.cookie.includes(`${SIDEBAR_COOKIE_NAME}=false`),
+    defaultOpen: !defaultDocument?.cookie.includes(
+      `${SIDEBAR_COOKIE_NAME}=false`,
+    ),
     open: undefined,
+    disabled: false,
   },
 );
 
@@ -38,30 +47,59 @@ const open = useVModel(props, "open", emits, {
 }) as Ref<boolean>;
 
 function setOpen(value: boolean) {
-  open.value = value; // emits('update:open', value)
+  if (props.disabled) {
+    open.value = false;
+    return;
+  }
 
-  // This sets the cookie to keep the sidebar state.
+  open.value = value;
+
   document.cookie = `${SIDEBAR_COOKIE_NAME}=${open.value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
 }
 
 function setOpenMobile(value: boolean) {
+  if (props.disabled) {
+    openMobile.value = false;
+    return;
+  }
+
   openMobile.value = value;
 }
 
 // Helper to toggle the sidebar.
 function toggleSidebar() {
-  return isMobile.value ? setOpenMobile(!openMobile.value) : setOpen(!open.value);
+  if (props.disabled) {
+    setOpen(false);
+    setOpenMobile(false);
+    return;
+  }
+
+  return isMobile.value
+    ? setOpenMobile(!openMobile.value)
+    : setOpen(!open.value);
 }
 
+watch(
+  () => props.disabled,
+  (disabled) => {
+    if (disabled) {
+      open.value = false;
+      openMobile.value = false;
+    }
+  },
+  { immediate: true },
+);
+
 useEventListener("keydown", (event: KeyboardEvent) => {
-  if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
+  if (
+    event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
+    (event.metaKey || event.ctrlKey)
+  ) {
     event.preventDefault();
     toggleSidebar();
   }
 });
 
-// We add a state so that we can do data-state="expanded" or "collapsed".
-// This makes it easier to style the sidebar with Tailwind classes.
 const state = computed(() => (open.value ? "expanded" : "collapsed"));
 
 provideSidebarContext({
