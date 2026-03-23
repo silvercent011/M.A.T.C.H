@@ -3,9 +3,13 @@
     "nitro/tsconfig"
   ],
   "compilerOptions": {
+    "baseUrl": ".",
     "paths": {
       "~/*": [
-        "./*"
+        "./app/*"
+      ],
+      "@/*": [
+        "./app/*"
       ]
     }
   },
