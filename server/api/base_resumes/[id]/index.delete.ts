@@ -1,6 +1,6 @@
 import { defineHandler } from "nitro";
 import { defineLazyEventHandler, getRouterParam } from "nitro/h3";
-import { BaseResumeService } from "~/server/services/BaseResumes.service";
+import { BaseResumeService } from "~~/server/services/BaseResumes.service.ts";
 
 export default defineLazyEventHandler(async () => {
   const __baseResumeService = new BaseResumeService();
