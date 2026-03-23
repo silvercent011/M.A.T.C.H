@@ -11,11 +11,11 @@ export default defineConfig({
     router({
       routesFolder: [
         {
-          src: 'app/pages',
-          path: '',
-          exclude: excluded => excluded,
-          filePatterns: filePatterns => filePatterns,
-          extensions: extensions => extensions,
+          src: "app/pages",
+          path: "",
+          exclude: (excluded) => excluded,
+          filePatterns: (filePatterns) => filePatterns,
+          extensions: (extensions) => extensions,
         },
       ],
     }),

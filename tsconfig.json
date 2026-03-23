@@ -1,29 +1,15 @@
 {
-  "extends": [
-    "nitro/tsconfig"
-  ],
+  "extends": ["nitro/tsconfig"],
   "compilerOptions": {
     "moduleResolution": "Bundler",
     "baseUrl": ".",
     "paths": {
-      "~~/*": [
-        "./*"
-      ],
-      "~/*": [
-        "./app/*"
-      ],
-      "@/*": [
-        "./app/*"
-      ]
+      "~~/*": ["./*"],
+      "~/*": ["./app/*"],
+      "@/*": ["./app/*"]
     }
   },
   "vueCompilerOptions": {
-    "plugins": [
-      "vue-router/volar/sfc-route-blocks",
-      "vue-router/volar/sfc-typed-router"
-    ]
-  },
-  "include": [
-    "./typed-router.d.ts"
-  ]
+    "plugins": ["vue-router/volar/sfc-route-blocks", "vue-router/volar/sfc-typed-router"]
+  }
 }
