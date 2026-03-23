@@ -5,11 +5,13 @@ export interface Job {
   base_resume_id: number;
   job_title: string;
   job_description: string;
+  job_url: string | null;
   job_requirements_map: string | null;
   audit_report: string | null;
   optimized_resume: string | null;
   score_total: number | null;
   score_breakdown: string | null;
+  final_output: string | null;
   refinement_count: number;
   status: "pending" | "processing" | "done" | "error";
   created_at: string;
@@ -25,17 +27,20 @@ export interface ResumeVersion {
   created_at: string;
 }
 
-export type CreateJobInput = Pick<Job, "base_resume_id" | "job_title" | "job_description">;
+export type CreateJobInput = Pick<Job, "base_resume_id" | "job_title" | "job_description"> &
+  Partial<Pick<Job, "job_url">>;
 export type UpdateJobInput = Partial<
   Pick<
     Job,
     | "job_title"
     | "job_description"
+    | "job_url"
     | "job_requirements_map"
     | "audit_report"
     | "optimized_resume"
     | "score_total"
     | "score_breakdown"
+    | "final_output"
     | "refinement_count"
     | "status"
   >
@@ -46,8 +51,8 @@ export class JobService {
     const db = useDatabase();
 
     const result = await db.sql`
-      INSERT INTO jobs (base_resume_id, job_title, job_description, status)
-      VALUES (${input.base_resume_id}, ${input.job_title}, ${input.job_description}, 'processing')
+      INSERT INTO jobs (base_resume_id, job_title, job_description, job_url, status)
+      VALUES (${input.base_resume_id}, ${input.job_title}, ${input.job_description}, ${input.job_url ?? null}, 'processing')
     `;
 
     return this.findById(result.lastInsertRowid as number) as Promise<Job>;
@@ -92,6 +97,8 @@ export class JobService {
         await db.sql`UPDATE jobs SET job_title = ${value} WHERE id = ${id}`;
       } else if (key === "job_description") {
         await db.sql`UPDATE jobs SET job_description = ${value} WHERE id = ${id}`;
+      } else if (key === "job_url") {
+        await db.sql`UPDATE jobs SET job_url = ${value} WHERE id = ${id}`;
       } else if (key === "job_requirements_map") {
         await db.sql`UPDATE jobs SET job_requirements_map = ${value} WHERE id = ${id}`;
       } else if (key === "audit_report") {
@@ -104,6 +111,8 @@ export class JobService {
         await db.sql`UPDATE jobs SET score_breakdown = ${value} WHERE id = ${id}`;
       } else if (key === "refinement_count") {
         await db.sql`UPDATE jobs SET refinement_count = ${value} WHERE id = ${id}`;
+      } else if (key === "final_output") {
+        await db.sql`UPDATE jobs SET final_output = ${value} WHERE id = ${id}`;
       } else if (key === "status") {
         await db.sql`UPDATE jobs SET status = ${value} WHERE id = ${id}`;
       }

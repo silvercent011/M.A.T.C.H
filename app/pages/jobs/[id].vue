@@ -20,7 +20,7 @@ const route = useRoute();
 const job = ref<any | null>(null);
 const isDeleting = ref(false);
 const isRetrying = ref(false);
-const activeTab = ref<"requirements" | "audit" | "resume">("resume");
+const activeTab = ref<"requirements" | "audit" | "resume" | "score" | "final">("resume");
 
 let pollInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -195,9 +195,20 @@ watch(
         <!-- Title + actions -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="flex items-center gap-3 min-w-0">
-            <h2 class="text-2xl font-bold tracking-tight truncate">
-              {{ job.job_title }}
-            </h2>
+            <div class="flex flex-col gap-0.5 min-w-0">
+              <h2 class="text-2xl font-bold tracking-tight truncate">
+                {{ job.job_title }}
+              </h2>
+              <a
+                v-if="job.job_url"
+                :href="job.job_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-xs text-primary hover:underline inline-flex items-center gap-1 w-fit"
+              >
+                Ver vaga original ↗
+              </a>
+            </div>
             <span
               class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium"
               :class="statusClass(job.status)"
@@ -221,7 +232,7 @@ watch(
           <div>
             <p class="text-sm font-medium">Score de Compatibilidade ATS</p>
             <p class="text-xs text-muted-foreground">
-              Baseado em palavras-chave, requisitos cobertos, métricas e formatação.
+              Baseado em palavras-chave, requisitos cobertos, métricas, formatação e conformidade ATS.
             </p>
           </div>
         </div>
@@ -267,6 +278,8 @@ watch(
                   { key: 'resume', label: 'Currículo Otimizado' },
                   { key: 'requirements', label: 'Mapa de Requisitos' },
                   { key: 'audit', label: 'Auditoria' },
+                  { key: 'score', label: 'Score & Conformidade' },
+                  { key: 'final', label: 'Resumo Final' },
                 ]"
                 :key="tab.key"
                 @click="activeTab = tab.key as any"
@@ -320,6 +333,22 @@ watch(
             <pre
               class="whitespace-pre-wrap text-sm bg-muted rounded-lg p-4 overflow-auto max-h-[60vh]"
               >{{ job.audit_report }}</pre
+            >
+          </div>
+
+          <!-- Score & Conformidade -->
+          <div v-if="activeTab === 'score'">
+            <pre
+              class="whitespace-pre-wrap text-sm bg-muted rounded-lg p-4 overflow-auto max-h-[60vh]"
+              >{{ job.score_breakdown }}</pre
+            >
+          </div>
+
+          <!-- Resumo Final -->
+          <div v-if="activeTab === 'final'">
+            <pre
+              class="whitespace-pre-wrap text-sm bg-muted rounded-lg p-4 overflow-auto max-h-[60vh]"
+              >{{ job.final_output }}</pre
             >
           </div>
         </div>

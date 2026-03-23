@@ -45,6 +45,7 @@ export default defineLazyEventHandler(async () => {
           optimized_resume: result.optimizedResume,
           score_total: result.finalScore,
           score_breakdown: result.scoreReport,
+          final_output: result.finalOutput,
           refinement_count: result.refinements,
           status: "done",
         });

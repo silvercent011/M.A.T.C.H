@@ -25,17 +25,27 @@ export default definePlugin(async () => {
       base_resume_id       INTEGER NOT NULL REFERENCES base_resumes(id) ON DELETE CASCADE,
       job_title            TEXT NOT NULL,
       job_description      TEXT NOT NULL,
+      job_url              TEXT,
       job_requirements_map TEXT,
       audit_report         TEXT,
       optimized_resume     TEXT,
       score_total          INTEGER,
       score_breakdown      TEXT,
       refinement_count     INTEGER DEFAULT 0,
+      final_output         TEXT,
       status               TEXT NOT NULL DEFAULT 'pending',
       created_at           TEXT DEFAULT (datetime('now')),
       updated_at           TEXT DEFAULT (datetime('now'))
     );
   `;
+
+  try {
+    await db.sql`ALTER TABLE jobs ADD COLUMN final_output TEXT`;
+  } catch (_) { /* coluna já existe em bancos existentes */ }
+
+  try {
+    await db.sql`ALTER TABLE jobs ADD COLUMN job_url TEXT`;
+  } catch (_) { /* coluna já existe em bancos existentes */ }
 
   await db.sql`CREATE INDEX IF NOT EXISTS idx_jobs_base_resume ON jobs(base_resume_id);`;
   await db.sql`CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);`;

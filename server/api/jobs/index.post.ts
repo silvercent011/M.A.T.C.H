@@ -11,13 +11,14 @@ export default defineLazyEventHandler(async () => {
   return defineHandler(async (event) => {
     const body: any = await readBody(event);
 
-    const { base_resume_id, job_title, job_description } = body;
+    const { base_resume_id, job_title, job_description, job_url } = body;
 
     // Create the job row immediately with status 'processing'
     const job = await __jobService.create({
       base_resume_id: parseInt(base_resume_id),
       job_title,
       job_description,
+      job_url: job_url || null,
     });
 
     // Fire-and-forget the ATS pipeline
@@ -40,6 +41,7 @@ export default defineLazyEventHandler(async () => {
           optimized_resume: result.optimizedResume,
           score_total: result.finalScore,
           score_breakdown: result.scoreReport,
+          final_output: result.finalOutput,
           refinement_count: result.refinements,
           status: "done",
         });

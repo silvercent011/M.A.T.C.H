@@ -102,6 +102,7 @@ const createForm = ref({
   job_title: "",
   job_description: "",
   base_resume_id: "",
+  job_url: "",
 });
 
 async function fetchBaseResumes() {
@@ -138,7 +139,7 @@ async function createJob() {
     if (res.ok) {
       const data = await res.json();
       openCreateDialog.value = false;
-      createForm.value = { job_title: "", job_description: "", base_resume_id: "" };
+      createForm.value = { job_title: "", job_description: "", base_resume_id: "", job_url: "" };
       await fetchJobs();
       selectJob(data.job);
     }
@@ -224,6 +225,15 @@ async function createJob() {
               v-model="createForm.job_title"
               required
               placeholder="Ex: Engenheiro de Software Sênior — TechCorp"
+            />
+          </div>
+          <div class="grid gap-2">
+            <Label htmlFor="job-url">Link da Vaga <span class="text-muted-foreground text-xs font-normal">(opcional)</span></Label>
+            <Input
+              id="job-url"
+              v-model="createForm.job_url"
+              type="url"
+              placeholder="https://linkedin.com/jobs/..."
             />
           </div>
           <div class="grid gap-2">
