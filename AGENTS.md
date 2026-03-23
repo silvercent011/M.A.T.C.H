@@ -4,11 +4,12 @@ This project is based on [Nitro](https://nitro.build) v3, [h3](https://h3.dev/),
 
 ## Project Structure
 
-`app/` is the frontend (SPA/SSR) with `index.html` as entry. `server/` contains server-side code with subdirs: `api/` (/api prefixed handlers), `routes/` (non-prefixed route handlers), `middleware/`, `plugins/`, `utils/`, `assets/`, and `tasks/`. `public/` holds static assets (copied, not bundled). Config files: `vite.config.ts` (loads nitro/vite plugin), `nitro.config.ts` (serverDir, routeRules, preset, etc.), `tsconfig.json` (extends nitro/tsconfig, `~/*` path alias).
+`app/` is the frontend with `main.ts` as entry and file-based pages under `app/pages/`. Key frontend subdirs currently in use are `components/`, `assets/`, and `lib/`. `server/` currently contains `api/` (/api prefixed handlers), `plugins/`, `services/`, and `utils/`. `public/` holds static assets (copied, not bundled). Config files: `vite.config.ts` (loads `nitro/vite`, Vue, Tailwind and file-based router plugins), `nitro.config.ts` (serverDir and database config), `tsconfig.json` (extends `nitro/tsconfig`, `~/*`, `@/*`, and `~~/*` path aliases).
 
 ## Conventions
 
-- Path alias `~/*` (tsconfig), use explicit `.ts` extensions
+- Path aliases: `~/*` and `@/*` map to `app/*`; `~~/*` maps to project root
+- Use explicit `.ts` extensions where applicable
 - Route handlers use `defineHandler()` from `nitro`
 - Route file patterns: `[param]` for dynamic, `[...slug]` for catch-all, `.get.ts`/`.post.ts` for method-specific, `(group)/` ignored in path
 - Environment-specific routes: `.dev.ts` / `.prod.ts` suffixes
@@ -38,11 +39,10 @@ Use docs from `./node_modules/nitro/skills/nitro/docs/` and prefer over fetching
 
 **Config (`nitro.config.ts`):**
 
-- `routeRules` — Per-route pattern headers, redirects, proxy, cache, basicAuth
-- `$development` / `$production` — Environment-specific config
-- `storage` + `devStorage` — KV driver config with dev overrides
-- `prerender: { routes, crawlLinks }` — Static pre-rendering
-- `traceDeps` — Externalize bundler-incompatible deps (traced into build output)
+- `serverDir` — currently points to `./server`
+- `experimental.database` — enabled in this project
+- `database.default` — uses `better-sqlite3` with database name `db`
+- `routeRules` / `storage` / `prerender` / `traceDeps` — supported by Nitro when needed, but not currently configured here
 
 **`import.meta.*` (server-side flags):** `dev`, `preset`, `prerender`, `nitro`, `server`, `client`, `baseURL`
 
