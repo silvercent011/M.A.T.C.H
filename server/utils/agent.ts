@@ -13,7 +13,11 @@ const parser = new StringOutputParser();
 const scoreStructuredModel = model.withStructuredOutput({
   type: "object",
   properties: {
-    analysis: { type: "string", description: "Detailed ATS compatibility analysis in markdown" },
+    analysis: {
+      type: "string",
+      description:
+        "Detailed ATS compatibility analysis in markdown. Must include the ATS Conformance Checklist with pass/fail for each item, and keyword density check per critical keyword.",
+    },
     score: { type: "integer", minimum: 0, maximum: 100, description: "ATS score 0 to 100" },
   },
   required: ["analysis", "score"],
@@ -25,7 +29,7 @@ const resumeStructuredModel = model.withStructuredOutput({
     optimized_resume: {
       type: "string",
       description:
-        "Complete ATS-optimized resume in markdown only. No analysis, no corrections summary, no score estimation.",
+        "Complete ATS-optimized resume in markdown only. Must include: exact job title as ## below candidate name, full abbreviation expansion on first mention, keywords in at least 2 sections each, consistent date format throughout. No analysis, no corrections summary, no score estimation.",
     },
   },
   required: ["optimized_resume"],
@@ -35,7 +39,7 @@ const SYSTEM_PROMPT = `Você é um especialista em recrutamento e sistemas ATS (
 
 Regras invioláveis:
 - Nunca invente experiências, cargos ou habilidades que o candidato não possua
-- Sempre use as palavras-chave exatas da vaga (não sinônimos)
+- Priorize as palavras-chave EXATAS da vaga; para ATS modernos com NLP/PLN, sinônimos podem ser listados como complemento (ex: "Excel / MS Excel") apenas quando ambas as formas aparecem na descrição da vaga ou são amplamente reconhecidas
 - Formate em markdown limpo e semântico
 - Priorize métricas e resultados quantificáveis
 - Mantenha tom profissional e objetivo`;
@@ -67,6 +71,12 @@ Liste os verbos de performance implícitos na vaga (ex: liderou, implementou, es
 
 ## Métricas valorizadas
 Que tipos de resultados quantificáveis a vaga valoriza? (ex: redução de custos %, crescimento de receita, tempo, escala)
+
+## Siglas e Abreviações críticas
+Para cada sigla técnica identificada na vaga, forneça:
+- [SIGLA] → [Forma extensa] ([SIGLA])
+Exemplos: CRM → Customer Relationship Management (CRM) | SPED → Sistema Público de Escrituração Digital (SPED) | SEO → Otimização para Motores de Busca (SEO)
+Se não houver siglas relevantes, escreva: "Nenhuma sigla crítica identificada."
 
 ## Tom e linguagem da empresa
 [formal/informal, técnico/generalista, startup/corporativo]
@@ -127,19 +137,25 @@ REGRAS DE FORMATAÇÃO ATS:
 - Cabeçalhos com ## e ###
 - Bullets com - (hífen simples)
 - Nenhuma imagem, ícone ou formatação gráfica
-- Ordem: Resumo > Habilidades > Experiência > Formação > Certificações
+- Sem cabeçalhos de página e rodapés (ATS não processa essas regiões)
+- Use o MESMO formato de data em todo o documento — escolha UM: MM/AAAA ou Mês/AAAA, não misture
+- Ordem: Resumo > Habilidades > Experiência > Formação > Projetos (se houver) > Certificações
 
 REGRAS DE CONTEÚDO:
 - Espelhe EXATAMENTE as palavras-chave da vaga (não sinônimos)
 - Cada bullet de experiência: verbo de ação + contexto + resultado mensurável
   Formato: "Verbo [o que fez] resultando em [métrica] para [contexto]"
 - Resumo profissional: 3-4 linhas com as 5 palavras-chave mais críticas da vaga
+- Título do currículo (## logo abaixo do nome): use EXATAMENTE o título do "Cargo-alvo" extraído do mapa de requisitos
+- Siglas e abreviações: na PRIMEIRA menção de cada sigla, escreva por extenso seguido da sigla entre parênteses — ex: "Gestão de Relacionamento com o Cliente (CRM)". Nas menções seguintes, use a sigla sozinha. Consulte a seção "Siglas e Abreviações críticas" do mapa de requisitos
+- Densidade de keywords: cada keyword crítica deve aparecer em pelo menos 2 seções distintas (ex: seção Habilidades E dentro de um bullet de Experiência) para maximizar o score de matching
 - Seção de habilidades: liste todas as keywords ATS relevantes que o candidato possui
 - Priorize experiências dos últimos 5 anos
 
 RETORNE O CURRÍCULO COMPLETO EM MARKDOWN:
 
 # [Nome Completo]
+## [Título exato da vaga — extraído de "Cargo-alvo" no mapa de requisitos]
 [cidade, estado] · [email] · [telefone] · [LinkedIn]
 
 ## Resumo Profissional
@@ -158,6 +174,12 @@ RETORNE O CURRÍCULO COMPLETO EM MARKDOWN:
 
 ## Formação Acadêmica
 ### [Grau] em [Curso] · [Instituição] · [Ano]
+
+## Projetos Relevantes
+*(Inclua APENAS se o candidato tiver projetos no currículo original ou for iniciante/recém-formado com projetos acadêmicos/pessoais relevantes para a vaga. Omita completamente se não houver projetos reais.)*
+
+### [Nome do Projeto] · [Tecnologias utilizadas] · [Ano]
+- [O que foi construído e resultado/impacto mensurável]
 
 ## Certificações
 - [Nome da certificação] · [Emissor] · [Ano]
@@ -188,9 +210,18 @@ const scorePrompt = ChatPromptTemplate.fromMessages([
 |---|---|---|---|
 | Palavras-chave obrigatórias | 35% | X/35 | [razão] |
 | Requisitos obrigatórios cobertos | 30% | X/30 | [razão] |
-| Métricas e resultados | 15% | X/15 | [razão] |
-| Formatação ATS-friendly | 10% | X/10 | [razão] |
-| Requisitos desejáveis cobertos | 10% | X/10 | [razão] |
+| Métricas e resultados | 10% | X/10 | [razão] |
+| Formatação e conformidade ATS | 20% | X/20 | [razão] |
+| Requisitos desejáveis cobertos | 5% | X/5 | [razão] |
+
+### Checklist de Conformidade ATS (impacta "Formatação e conformidade ATS")
+- [ ] Título do currículo = título exato da vaga (cargo-alvo)
+- [ ] Siglas críticas escritas por extenso na primeira menção
+- [ ] Cada keyword crítica aparece em pelo menos 2 seções distintas (densidade ≥ 2)
+- [ ] Formato de data consistente ao longo de todo o documento
+- [ ] Sem cabeçalhos ou rodapés de página presentes
+
+Para cada item marcado como FALHOU: desconte pontos proporcionalmente na dimensão "Formatação e conformidade ATS" e liste a falha em "Pontos de melhoria restantes".
 
 ## Palavras-chave ATS encontradas no currículo
 Liste cada keyword da vaga e marque: ✓ Presente | ⚠ Parcial | ✗ Ausente
@@ -220,7 +251,15 @@ const refinementPrompt = ChatPromptTemplate.fromMessages([
 PROBLEMAS IDENTIFICADOS:
 {score_gaps}
 
+QUICK WINS (corrija primeiro — alta pontuação, baixo esforço):
+1. Título: a linha imediatamente abaixo do nome é o cargo-alvo exato? Se não, corrija agora.
+2. Siglas: alguma sigla crítica aparece sem a forma extensa na primeira menção? Corrija todas usando a lista de siglas do mapa de requisitos.
+3. Densidade: alguma keyword crítica aparece em apenas 1 seção? Insira também na seção Habilidades ou em um bullet de experiência real — sem inventar contexto.
+4. Datas: há mistura de formatos (ex: "01/2020" e "Janeiro/2020" no mesmo documento)? Normalize para o formato predominante no currículo.
+5. Projetos: o candidato tem projetos no currículo original que foram omitidos? Adicione a seção ## Projetos Relevantes.
+
 INSTRUÇÕES DE CORREÇÃO:
+- Corrija os quick wins ANTES de abordar gaps de keywords mais complexos
 - Para cada palavra-chave ATS marcada como "Ausente", encontre no currículo original uma experiência onde ela poderia ser inserida de forma verdadeira e natural
 - Reescreva apenas as seções com score baixo — mantenha o restante
 - Não invente experiências. Se a keyword não pode ser inserida honestamente, marque como "gap real"
