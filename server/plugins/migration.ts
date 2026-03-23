@@ -1,12 +1,12 @@
-import { defineHandler } from "nitro";
+import { definePlugin } from "nitro";
 import { useDatabase } from "nitro/database";
 
-export default defineHandler(async () => {
-    const db = useDatabase();
+export default definePlugin(async () => {
+  const db = useDatabase();
 
-    await db.sql`PRAGMA foreign_keys = ON;`;
+  await db.sql`PRAGMA foreign_keys = ON;`;
 
-    await db.sql`
+  await db.sql`
     CREATE TABLE IF NOT EXISTS base_resumes (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id     TEXT NOT NULL,
@@ -17,9 +17,9 @@ export default defineHandler(async () => {
     );
   `;
 
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_base_resumes_user ON base_resumes(user_id);`;
+  await db.sql`CREATE INDEX IF NOT EXISTS idx_base_resumes_user ON base_resumes(user_id);`;
 
-    await db.sql`
+  await db.sql`
     CREATE TABLE IF NOT EXISTS jobs (
       id                   INTEGER PRIMARY KEY AUTOINCREMENT,
       base_resume_id       INTEGER NOT NULL REFERENCES base_resumes(id) ON DELETE CASCADE,
@@ -37,10 +37,10 @@ export default defineHandler(async () => {
     );
   `;
 
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_jobs_base_resume ON jobs(base_resume_id);`;
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);`;
+  await db.sql`CREATE INDEX IF NOT EXISTS idx_jobs_base_resume ON jobs(base_resume_id);`;
+  await db.sql`CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);`;
 
-    await db.sql`
+  await db.sql`
     CREATE TABLE IF NOT EXISTS resume_versions (
       id               INTEGER PRIMARY KEY AUTOINCREMENT,
       job_id           INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
@@ -51,9 +51,9 @@ export default defineHandler(async () => {
     );
   `;
 
-    await db.sql`CREATE INDEX IF NOT EXISTS idx_resume_versions_job ON resume_versions(job_id);`;
+  await db.sql`CREATE INDEX IF NOT EXISTS idx_resume_versions_job ON resume_versions(job_id);`;
 
-    await db.sql`
+  await db.sql`
     CREATE TRIGGER IF NOT EXISTS trg_base_resumes_updated
     AFTER UPDATE ON base_resumes
     FOR EACH ROW
@@ -62,7 +62,7 @@ export default defineHandler(async () => {
     END;
   `;
 
-    await db.sql`
+  await db.sql`
     CREATE TRIGGER IF NOT EXISTS trg_jobs_updated
     AFTER UPDATE ON jobs
     FOR EACH ROW
