@@ -44,7 +44,8 @@ const navMain = [
             <SidebarMenuButton size="lg" as-child class="md:h-8 md:p-0">
               <a href="#">
                 <div
-                  class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg font-bold">
+                  class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg font-bold"
+                >
                   M
                 </div>
                 <div class="grid flex-1 text-left text-sm leading-tight">
@@ -61,8 +62,12 @@ const navMain = [
           <SidebarGroupContent class="px-1.5 md:px-0">
             <SidebarMenu>
               <SidebarMenuItem v-for="item in navMain" :key="item.title">
-                <SidebarMenuButton :tooltip="h('div', { hidden: false }, item.title)"
-                  :is-active="$route.path === item.path" class="px-2.5 md:px-2" @click="$router.push(item.path)">
+                <SidebarMenuButton
+                  :tooltip="h('div', { hidden: false }, item.title)"
+                  :is-active="$route.path === item.path"
+                  class="px-2.5 md:px-2"
+                  @click="$router.push(item.path)"
+                >
                   <component :is="item.icon" />
                   <span>{{ item.title }}</span>
                 </SidebarMenuButton>

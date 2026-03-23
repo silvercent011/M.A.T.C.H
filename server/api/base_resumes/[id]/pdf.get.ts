@@ -26,43 +26,42 @@ em { font-style: italic; }
 `;
 
 export default defineLazyEventHandler(async () => {
-    const __baseResumeService = new BaseResumeService();
+  const __baseResumeService = new BaseResumeService();
 
-    return defineHandler(async (event) => {
-        const id = getRouterParam(event, "id");
-        if (!id) {
-            throw new HTTPError({ statusCode: 400, message: "ID is required" });
-        }
+  return defineHandler(async (event) => {
+    const id = getRouterParam(event, "id");
+    if (!id) {
+      throw new HTTPError({ statusCode: 400, message: "ID is required" });
+    }
 
-        const resume = await __baseResumeService.findById(parseInt(id));
+    const resume = await __baseResumeService.findById(parseInt(id));
 
-        if (!resume) {
-            throw new HTTPError({ statusCode: 404, message: "Resume not found" });
-        }
+    if (!resume) {
+      throw new HTTPError({ statusCode: 404, message: "Resume not found" });
+    }
 
-        try {
-            const pdfData = await mdToPdf(
-                { content: resume.resume_text },
-                {
-                    pdf_options: {
-                        format: 'A4',
-                        margin: { top: '18mm', bottom: '18mm', left: '18mm', right: '18mm' },
-                        printBackground: false,
-                    },
-                    css: CSS_CONTENT,
-                    launch_options: { args: ['--no-sandbox'] },
-                }
-            );
+    try {
+      const pdfData = await mdToPdf(
+        { content: resume.resume_text },
+        {
+          pdf_options: {
+            format: "A4",
+            margin: { top: "18mm", bottom: "18mm", left: "18mm", right: "18mm" },
+            printBackground: false,
+          },
+          css: CSS_CONTENT,
+          launch_options: { args: ["--no-sandbox"] },
+        },
+      );
 
-            // Return PDF buffer with correct headers
-            setHeader(event, "Content-Type", "application/pdf");
-            setHeader(event, "Content-Disposition", `attachment; filename="${resume.resume_name}.pdf"`);
-            
-            return pdfData.content;
-            
-        } catch (error) {
-            console.error("Failed to generate PDF:", error);
-            throw new HTTPError({ statusCode: 500, message: "Failed to generate PDF" });
-        }
-    });
+      // Return PDF buffer with correct headers
+      setHeader(event, "Content-Type", "application/pdf");
+      setHeader(event, "Content-Disposition", `attachment; filename="${resume.resume_name}.pdf"`);
+
+      return pdfData.content;
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      throw new HTTPError({ statusCode: 500, message: "Failed to generate PDF" });
+    }
+  });
 });

@@ -24,7 +24,8 @@ const resumeStructuredModel = model.withStructuredOutput({
   properties: {
     optimized_resume: {
       type: "string",
-      description: "Complete ATS-optimized resume in markdown only. No analysis, no corrections summary, no score estimation.",
+      description:
+        "Complete ATS-optimized resume in markdown only. No analysis, no corrections summary, no score estimation.",
     },
   },
   required: ["optimized_resume"],
@@ -398,7 +399,6 @@ async function runATSPipeline({
     refinements: refinementCount,
   };
 }
-
 
 export {
   runATSPipeline,

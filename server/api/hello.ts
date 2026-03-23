@@ -1,5 +1,5 @@
 import { defineHandler } from "nitro";
 
-export default defineHandler((event) => {
+export default defineHandler(() => {
   return { api: "works!" };
 });

@@ -26,44 +26,43 @@ em { font-style: italic; }
 `;
 
 export default defineLazyEventHandler(async () => {
-    const __jobsService = new JobService();
+  const __jobsService = new JobService();
 
-    return defineHandler(async (event) => {
-        const id = getRouterParam(event, "id");
-        if (!id) {
-            throw new HTTPError({ statusCode: 400, message: "ID is required" });
-        }
+  return defineHandler(async (event) => {
+    const id = getRouterParam(event, "id");
+    if (!id) {
+      throw new HTTPError({ statusCode: 400, message: "ID is required" });
+    }
 
-        const job = await __jobsService.findById(parseInt(id));
+    const job = await __jobsService.findById(parseInt(id));
 
-        if (!job || !job.optimized_resume) {
-            throw new HTTPError({ statusCode: 404, message: "Job or optimized resume not found" });
-        }
+    if (!job || !job.optimized_resume) {
+      throw new HTTPError({ statusCode: 404, message: "Job or optimized resume not found" });
+    }
 
-        try {
-            const pdfData = await mdToPdf(
-                { content: job.optimized_resume },
-                {
-                    pdf_options: {
-                        format: 'A4',
-                        margin: { top: '18mm', bottom: '18mm', left: '18mm', right: '18mm' },
-                        printBackground: false,
-                    },
-                    css: CSS_CONTENT,
-                    launch_options: { args: ['--no-sandbox'] },
-                }
-            );
+    try {
+      const pdfData = await mdToPdf(
+        { content: job.optimized_resume },
+        {
+          pdf_options: {
+            format: "A4",
+            margin: { top: "18mm", bottom: "18mm", left: "18mm", right: "18mm" },
+            printBackground: false,
+          },
+          css: CSS_CONTENT,
+          launch_options: { args: ["--no-sandbox"] },
+        },
+      );
 
-            // Return PDF buffer with correct headers
-            setHeader(event, "Content-Type", "application/pdf");
-            const sanitizedName = job.job_title.replace(/[^a-zA-Z0-9_-]/g, '_') + '_ATS';
-            setHeader(event, "Content-Disposition", `attachment; filename="${sanitizedName}.pdf"`);
-            
-            return pdfData.content;
-            
-        } catch (error) {
-            console.error("Failed to generate PDF:", error);
-            throw new HTTPError({ statusCode: 500, message: "Failed to generate PDF" });
-        }
-    });
+      // Return PDF buffer with correct headers
+      setHeader(event, "Content-Type", "application/pdf");
+      const sanitizedName = job.job_title.replace(/[^a-zA-Z0-9_-]/g, "_") + "_ATS";
+      setHeader(event, "Content-Disposition", `attachment; filename="${sanitizedName}.pdf"`);
+
+      return pdfData.content;
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      throw new HTTPError({ statusCode: 500, message: "Failed to generate PDF" });
+    }
+  });
 });

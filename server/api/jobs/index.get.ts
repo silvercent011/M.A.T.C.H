@@ -7,7 +7,9 @@ export default defineLazyEventHandler(async () => {
 
   return defineHandler(async (event) => {
     const query = getQuery(event);
-    const baseResumeId = query.base_resume_id ? parseInt(query.base_resume_id as string) : undefined;
+    const baseResumeId = query.base_resume_id
+      ? parseInt(query.base_resume_id as string)
+      : undefined;
 
     const jobs = await __jobService.findAll(baseResumeId);
 

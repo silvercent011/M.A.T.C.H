@@ -6,9 +6,11 @@ import JobSidebar from "@/components/JobSidebar.vue";
 </script>
 
 <template>
-  <SidebarProvider :style="{
-    '--sidebar-width': '350px',
-  }">
+  <SidebarProvider
+    :style="{
+      '--sidebar-width': '350px',
+    }"
+  >
     <AppSidebar>
       <ResumeSidebar v-if="$route.path.startsWith('/resumes')" />
       <JobSidebar v-if="$route.path.startsWith('/jobs')" />

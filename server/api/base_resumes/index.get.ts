@@ -5,7 +5,7 @@ import { BaseResumeService } from "~~/server/services/BaseResumes.service.ts";
 export default defineLazyEventHandler(async () => {
   const __baseResumeService = new BaseResumeService();
 
-  return defineHandler(async (event) => {
+  return defineHandler(async () => {
     const userId = "0";
 
     const resumes = await __baseResumeService.findByUserId(userId);
