@@ -13,7 +13,8 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useRoute, useRouter } from "vue-router";
 import { Textarea } from "~~/app/components/ui/textarea";
-import { Download, FileDown } from "lucide-vue-next";
+import { Download, FileDown, Pencil, X } from "lucide-vue-next";
+import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -25,6 +26,7 @@ const editForm = ref({
 });
 const isSaving = ref(false);
 const isDeleting = ref(false);
+const isEditing = ref(false);
 
 async function fetchResume() {
   const res = await fetch(`/api/base_resumes/${route.params.id}`);
@@ -45,7 +47,8 @@ async function saveResume() {
     });
 
     if (res.ok) {
-      fetchResume();
+      await fetchResume();
+      isEditing.value = false;
     }
   } catch (error) {
     console.error("Failed to update resume", error);
@@ -72,6 +75,11 @@ async function deleteResume() {
   } finally {
     isDeleting.value = false;
   }
+}
+
+function cancelEdit() {
+  editForm.value.resume_text = activeResume.value.resume_text;
+  isEditing.value = false;
 }
 
 async function downloadMarkdown() {
@@ -163,13 +171,33 @@ onMounted(async () => {
               <Download class="w-4 h-4 mr-2" />
               {{ isExportingPdf ? "Gerando..." : "PDF" }}
             </Button>
-            <Button
-              variant="outline"
-              @click="saveResume"
-              :disabled="isSaving || isDeleting || isExportingPdf"
-            >
-              {{ isSaving ? "Salvando..." : "Salvar Alterações" }}
-            </Button>
+            <template v-if="!isEditing">
+              <Button
+                variant="outline"
+                @click="isEditing = true"
+                :disabled="isDeleting"
+              >
+                <Pencil class="w-4 h-4 mr-2" />
+                Editar
+              </Button>
+            </template>
+            <template v-else>
+              <Button
+                variant="outline"
+                @click="cancelEdit"
+                :disabled="isSaving"
+              >
+                <X class="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button
+                variant="outline"
+                @click="saveResume"
+                :disabled="isSaving || isDeleting"
+              >
+                {{ isSaving ? "Salvando..." : "Salvar" }}
+              </Button>
+            </template>
             <Button
               variant="destructive"
               @click="deleteResume"
@@ -179,7 +207,13 @@ onMounted(async () => {
             </Button>
           </div>
         </div>
+        <MarkdownRenderer
+          v-if="!isEditing"
+          :content="activeResume.resume_text"
+          class="flex-1 rounded-md border bg-muted p-4 overflow-auto min-h-[400px]"
+        />
         <Textarea
+          v-else
           class="flex-1 font-mono text-sm resize-none p-4 w-full h-full min-h-[400px]"
           v-model="editForm.resume_text"
           placeholder="Cole seu currículo em markdown aqui..."

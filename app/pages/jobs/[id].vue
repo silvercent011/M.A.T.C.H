@@ -13,6 +13,7 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useRoute, useRouter } from "vue-router";
 import { Download, FileDown } from "lucide-vue-next";
+import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -20,7 +21,7 @@ const route = useRoute();
 const job = ref<any | null>(null);
 const isDeleting = ref(false);
 const isRetrying = ref(false);
-const activeTab = ref<"requirements" | "audit" | "resume" | "score" | "final">("resume");
+const activeTab = ref<"requirements" | "audit" | "resume" | "score" | "final" | "description">("resume");
 
 let pollInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -190,8 +191,8 @@ watch(
       </Breadcrumb>
     </header>
 
-    <div class="flex flex-1 flex-col gap-4 p-4 h-[calc(100vh-73px)] overflow-auto">
-      <div v-if="job" class="flex flex-col gap-4">
+    <div class="flex flex-1 flex-col gap-4 p-4 h-[calc(100vh-73px)] overflow-hidden">
+      <div v-if="job" class="flex flex-1 flex-col gap-4 min-h-0">
         <!-- Title + actions -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="flex items-center gap-3 min-w-0">
@@ -269,7 +270,7 @@ watch(
         </div>
 
         <!-- Tabs: done state -->
-        <div v-if="job.status === 'done'" class="flex flex-col gap-4">
+        <div v-if="job.status === 'done'" class="flex flex-1 flex-col gap-0 min-h-0">
           <!-- Tab buttons and Actions -->
           <div class="flex items-center justify-between border-b">
             <div class="flex gap-1">
@@ -280,6 +281,7 @@ watch(
                   { key: 'audit', label: 'Auditoria' },
                   { key: 'score', label: 'Score & Conformidade' },
                   { key: 'final', label: 'Resumo Final' },
+                  { key: 'description', label: 'Descrição da Vaga' },
                 ]"
                 :key="tab.key"
                 @click="activeTab = tab.key as any"
@@ -312,56 +314,39 @@ watch(
             </div>
           </div>
 
-          <!-- Currículo Otimizado -->
-          <div v-if="activeTab === 'resume'">
+          <!-- Tab content -->
+          <div class="flex-1 overflow-auto mt-4 min-h-0">
+            <MarkdownRenderer
+              v-if="activeTab === 'resume'"
+              :content="job.optimized_resume"
+              class="bg-muted rounded-lg p-4"
+            />
+            <MarkdownRenderer
+              v-else-if="activeTab === 'requirements'"
+              :content="job.job_requirements_map"
+              class="bg-muted rounded-lg p-4"
+            />
+            <MarkdownRenderer
+              v-else-if="activeTab === 'audit'"
+              :content="job.audit_report"
+              class="bg-muted rounded-lg p-4"
+            />
+            <MarkdownRenderer
+              v-else-if="activeTab === 'score'"
+              :content="job.score_breakdown"
+              class="bg-muted rounded-lg p-4"
+            />
+            <MarkdownRenderer
+              v-else-if="activeTab === 'final'"
+              :content="job.final_output"
+              class="bg-muted rounded-lg p-4"
+            />
             <pre
-              class="whitespace-pre-wrap font-mono text-sm bg-muted rounded-lg p-4 overflow-auto max-h-[60vh]"
-              >{{ job.optimized_resume }}</pre
+              v-else-if="activeTab === 'description'"
+              class="whitespace-pre-wrap text-sm text-muted-foreground bg-muted rounded-lg p-4"
+              >{{ job.job_description }}</pre
             >
           </div>
-
-          <!-- Mapa de Requisitos -->
-          <div v-if="activeTab === 'requirements'">
-            <pre
-              class="whitespace-pre-wrap text-sm bg-muted rounded-lg p-4 overflow-auto max-h-[60vh]"
-              >{{ job.job_requirements_map }}</pre
-            >
-          </div>
-
-          <!-- Auditoria -->
-          <div v-if="activeTab === 'audit'">
-            <pre
-              class="whitespace-pre-wrap text-sm bg-muted rounded-lg p-4 overflow-auto max-h-[60vh]"
-              >{{ job.audit_report }}</pre
-            >
-          </div>
-
-          <!-- Score & Conformidade -->
-          <div v-if="activeTab === 'score'">
-            <pre
-              class="whitespace-pre-wrap text-sm bg-muted rounded-lg p-4 overflow-auto max-h-[60vh]"
-              >{{ job.score_breakdown }}</pre
-            >
-          </div>
-
-          <!-- Resumo Final -->
-          <div v-if="activeTab === 'final'">
-            <pre
-              class="whitespace-pre-wrap text-sm bg-muted rounded-lg p-4 overflow-auto max-h-[60vh]"
-              >{{ job.final_output }}</pre
-            >
-          </div>
-        </div>
-
-        <!-- Job description (always visible) -->
-        <div class="rounded-lg border bg-card p-4">
-          <p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-            Descrição Original da Vaga
-          </p>
-          <pre
-            class="whitespace-pre-wrap text-sm text-muted-foreground max-h-[30vh] overflow-auto"
-            >{{ job.job_description }}</pre
-          >
         </div>
       </div>
     </div>
