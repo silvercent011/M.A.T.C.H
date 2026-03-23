@@ -14,5 +14,11 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "dependencies": {
+    "@langchain/anthropic": "^1.3.25",
+    "@langchain/core": "^1.1.35",
+    "better-sqlite3": "^12.8.0",
+    "langchain": "^1.2.36"
   }
 }
