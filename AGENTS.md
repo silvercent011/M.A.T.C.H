@@ -47,3 +47,7 @@ Use docs from `./node_modules/nitro/skills/nitro/docs/` and prefer over fetching
 **`import.meta.*` (server-side flags):** `dev`, `preset`, `prerender`, `nitro`, `server`, `client`, `baseURL`
 
 **Nitro v3 / H3 v2 new conventions:** `nitropack/runtime/*` → `nitro/*` (e.g. `nitro/storage`, `nitro/task`, `nitro/types`); all h3 imports from `nitro/h3`; `eventHandler()`/`defineEventHandler()` → `defineHandler()`; `createError()`/`H3Error` → `HTTPError`; `event.path` → `event.url.pathname`; `event.web` → `event.req` (native `Request`); body via `event.req.json()`/`.text()`/`.formData()`; headers via `event.req.headers.get()`/`event.res.headers.set()`; status via `event.res.status`; always `return` values (`return redirect(loc, code)`); `sendError()` → `throw HTTPError`; `sendNoContent()` → `return noContent()`; `useAppConfig()` removed.
+
+## ATS Pipeline (`server/utils/agent.ts`)
+
+`runATSPipeline` accepts `currentResume` as plain text or HTML. If the input is detected as HTML (by `<!DOCTYPE html>`, `<html` root, or ≥3 structural HTML tags), `stripHtml()` extracts readable text using a state-machine parser before passing to the AI. The rewrite prompt template includes an `## Idiomas` section for language proficiency.

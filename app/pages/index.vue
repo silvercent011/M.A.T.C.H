@@ -166,7 +166,7 @@ onMounted(() => {
           <CardHeader class="pb-2">
             <CardDescription>Score médio</CardDescription>
             <CardTitle class="text-2xl">
-              {{ stats.averageScore ? `${stats.averageScore.toFixed(1)}/10` : "--" }}
+              {{ stats.averageScore ? `${Math.round(stats.averageScore)}%` : "--" }}
             </CardTitle>
           </CardHeader>
           <CardContent class="text-sm text-muted-foreground">Das vagas avaliadas.</CardContent>
