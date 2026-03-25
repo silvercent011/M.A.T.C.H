@@ -2,6 +2,75 @@ import { ChatAnthropic } from "@langchain/anthropic";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 
+function stripHtml(html: string): string {
+  // Extract readable text from HTML for AI processing (not for rendering).
+  // Uses a state-machine approach to avoid regex-based tag stripping patterns.
+  const blockTags = new Set([
+    "p", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6",
+    "tr", "td", "th", "section", "article", "header", "footer", "br", "hr",
+  ]);
+  const skipTags = new Set(["style", "script"]);
+
+  let result = "";
+  let i = 0;
+  const len = html.length;
+
+  while (i < len) {
+    if (html[i] !== "<") {
+      result += html[i++];
+      continue;
+    }
+
+    // Inside a tag — find the closing '>'
+    const tagStart = i;
+    i++; // skip '<'
+
+    // Determine tag name
+    let tagName = "";
+    const isClose = html[i] === "/";
+    if (isClose) i++;
+    while (i < len && /[a-zA-Z0-9]/.test(html[i])) {
+      tagName += html[i++].toLowerCase();
+    }
+
+    // Skip to end of tag
+    while (i < len && html[i] !== ">") i++;
+    i++; // skip '>'
+
+    // For skip-content tags (style/script), consume everything until closing tag
+    if (skipTags.has(tagName) && !isClose) {
+      const closing = `</${tagName}`;
+      const closeIdx = html.toLowerCase().indexOf(closing, i);
+      if (closeIdx !== -1) {
+        // Skip past the closing tag
+        i = html.indexOf(">", closeIdx) + 1;
+        if (i === 0) i = len;
+      } else {
+        i = len;
+      }
+      continue;
+    }
+
+    // For block-level tags, emit a newline to preserve structure
+    if (blockTags.has(tagName)) {
+      result += "\n";
+    }
+
+    void tagStart; // suppress unused warning
+  }
+
+  // Decode common HTML entities
+  const entities: Record<string, string> = {
+    "&amp;": "&", "&lt;": "<", "&gt;": ">",
+    "&quot;": '"', "&#39;": "'", "&apos;": "'", "&nbsp;": " ",
+  };
+  for (const [entity, char] of Object.entries(entities)) {
+    result = result.split(entity).join(char);
+  }
+
+  return result.replace(/\n[ \t]+/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 const model = new ChatAnthropic({
   modelName: "claude-sonnet-4-5",
   temperature: 0.2,
@@ -174,6 +243,10 @@ RETORNE O CURRÍCULO COMPLETO EM MARKDOWN:
 
 ## Formação Acadêmica
 ### [Grau] em [Curso] · [Instituição] · [Ano]
+
+## Idiomas
+*(Inclua apenas se o candidato mencionar idiomas no currículo original. Omita completamente se não houver.)*
+- [Idioma] — [Nível]
 
 ## Projetos Relevantes
 *(Inclua APENAS se o candidato tiver projetos no currículo original ou for iniciante/recém-formado com projetos acadêmicos/pessoais relevantes para a vaga. Omita completamente se não houver projetos reais.)*
@@ -350,6 +423,13 @@ async function runATSPipeline({
     if (onStep) onStep(step, data);
   };
 
+  // Strip HTML tags if the resume was submitted in HTML format (e.g. from an HTML file export)
+  const isHtmlResume =
+    /^\s*<!DOCTYPE\s+html/i.test(currentResume) ||
+    /^\s*<html/i.test(currentResume) ||
+    (currentResume.match(/<(div|p|ul|li|h[1-6]|table|section|article|header|body)[^>]*>/gi)?.length ?? 0) >= 3;
+  const cleanResume = isHtmlResume ? stripHtml(currentResume) : currentResume;
+
   // ── Etapa 1: Análise da vaga ──────────────────────────────
   console.log("1/5 — Analisando descrição da vaga...");
   const jobRequirementsMap = await jobAnalysisChain.invoke({ job_description: jobDescription });
@@ -359,7 +439,7 @@ async function runATSPipeline({
   console.log("2/5 — Auditando currículo atual...");
   const auditReport = await auditChain.invoke({
     job_requirements_map: jobRequirementsMap,
-    current_resume: currentResume,
+    current_resume: cleanResume,
   });
   log("2/5 — Auditoria concluída ✓", auditReport);
 
@@ -368,7 +448,7 @@ async function runATSPipeline({
   let { optimized_resume: optimizedResume } = await rewriteChain.invoke({
     job_requirements_map: jobRequirementsMap,
     audit_report: auditReport,
-    current_resume: currentResume,
+    current_resume: cleanResume,
   });
   console.log("3/5 — Currículo reescrito ✓");
 
@@ -411,7 +491,7 @@ async function runATSPipeline({
       score_gaps: scoreReport,
       optimized_resume: optimizedResume,
       job_requirements_map: jobRequirementsMap,
-      current_resume: currentResume,
+      current_resume: cleanResume,
     }));
 
     console.log(`4/5 — Refinamento ${refinementCount} concluído ✓`);
